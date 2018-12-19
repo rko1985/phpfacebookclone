@@ -1,7 +1,5 @@
 <?php 
 include("includes/header.php");
-include("includes/classes/User.php");
-include("includes/classes/Post.php");
 
 if(isset($_GET['profile_username'])){
    $username = $_GET['profile_username'];
@@ -64,19 +62,118 @@ if(isset($_POST['respond_request'])){
             }
             else
                echo '<input type="submit" name="add_friend" class="success" value="Add Friend"><br>';
-         } 
-      
+         }
       ?>
-   
+
    </form>
 
+   <input type="submit" class="deep_blue" data-toggle="modal" data-target="#post_form" value="Post Something">
+   
+   <?php 
+      if($userLoggedIn != $username){
+         echo '<div class="profile_info_bottom">';
+         echo $logged_in_user_obj->getMutualFriends($username) . " Mutual Friends";
+         echo '</div>';
+      }
+   ?>
+
 </div>
 
-<div class="main_column column">
+<div class="profile_main_column column">
 
-   <?php echo $username; ?>
+   <div class="posts_area"></div>
+   <img id="loading" src="assets/images/icons/loading.gif">
 
 </div>
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="post_form" tabindex="-1" role="dialog" aria-labelledby="postModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title" id="myModalLabel">Post something!</h4>
+      </div>
+
+      <div class="modal-body">
+        <p>This will appear on the user's profile page and also their newsfeed for your friends to see!</p>
+      
+         <form action="" class="profile_post" action="" method="POST">
+            <div class="form-group">
+               <textarea class="form-control" name="post_body"></textarea>
+               <input type="hidden" name="user_from" value="<?php echo $userLoggedIn;?>">
+               <input type="hidden" name="user_to" value="<?php echo $username;?>">
+            </div>
+         
+         </form>
+      </div>
+
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" name="post_button" id="submit_profile_post">Post</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+
+   $(function(){
+       var userLoggedIn = '<?php echo $userLoggedIn; ?>';
+       var profileUsername = '<?php echo $username; ?>';
+       var inProgress = false;
+       loadPosts(); //Load first posts
+       $(window).scroll(function() {
+           var bottomElement = $(".status_post").last();
+           var noMorePosts = $('.posts_area').find('.noMorePosts').val();
+           // isElementInViewport uses getBoundingClientRect(), which requires the HTML DOM object, not the jQuery object. The jQuery equivalent is using [0] as shown below.
+           if (isElementInView(bottomElement[0]) && noMorePosts === 'false') {
+               loadPosts();
+           }
+       });
+       function loadPosts() {
+           if(inProgress) { //If it is already in the process of loading some posts, just return
+               return;
+           }
+           inProgress = true;
+           $('#loading').show();
+           var page = $('.posts_area').find('.nextPage').val() || 1; //If .nextPage couldn't be found, it must not be on the page yet (it must be the first time loading posts), so use the value '1'
+           $.ajax({
+               url: "includes/handlers/ajax_load_profile_posts.php",
+               type: "POST",
+               data: "page=" + page + "&userLoggedIn=" + userLoggedIn + "&profileUsername=" + profileUsername,
+               cache:false,
+               success: function(response) {
+                   $('.posts_area').find('.nextPage').remove(); //Removes current .nextpage
+                   $('.posts_area').find('.noMorePosts').remove(); 
+                   $('.posts_area').find('.noMorePostsText').remove();
+                   $('#loading').hide();
+                   $(".posts_area").append(response);                                     
+                   inProgress = false;
+               }
+           });
+       }
+       //Check if the element is in view
+       function isElementInView (el) {
+             if(el == null) {
+                return;
+            }
+           var rect = el.getBoundingClientRect();
+           return (
+               rect.top >= 0 &&
+               rect.left >= 0 &&
+               rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && //* or $(window).height()
+               rect.right <= (window.innerWidth || document.documentElement.clientWidth) //* or $(window).width()
+           );
+       }
+   });
+
+</script>
 
 
 </div> <!-- End wrapper from header -->
