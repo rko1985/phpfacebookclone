@@ -23,6 +23,9 @@
 
 <?php 
 require 'config/config.php';
+include("includes/classes/User.php");
+include("includes/classes/Post.php");
+include("includes/classes/Notification.php");
 
 if(isset($_SESSION['username'])){
     $userLoggedIn = $_SESSION['username'];
@@ -56,6 +59,10 @@ if(isset($_POST['like_button'])){
     $insert_user = mysqli_query($con, "INSERT INTO likes VALUES('', '$userLoggedIn', '$post_id')");
 
     //insert notification
+    if($user_liked != $userLoggedIn){
+        $notification = new Notification($con, $userLoggedIn);
+        $notification->insertNotification($post_id, $user_liked, "like");
+    }
 }
 
 //unlike button
