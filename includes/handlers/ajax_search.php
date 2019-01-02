@@ -29,9 +29,7 @@ if($query != ""){
                     <div class='liveSearchProfilePic'>
                         <img src='" . $row['profile_pic'] . "'>
                     </div>
-                    <div class='liveSearchText'>
-                    " . $row['first_name']. " " . $row['last_name'] . "
-                    <p>" . $row['username']. "</p>
+                    <div class='liveSearchText'>" . $row['first_name']. " " . $row['last_name'] . "<p>" . $row['username']. "</p>
                         <p id='grey'>" . $mutal_friends ."</p>
                     </div>
                 </a>
